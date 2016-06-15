@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>  
+    <head>
+	<meta charset="utf-8"/> 
+    <title>Centre de Communication</title>
+    </head>
+    <body>
+    
+	Username : <input type="text" id="username" value="demo-bob"/><br>
+	Password : <input type="text" id="password" value="othersecretpassword"/><br>
+	<button onclick="onConnectClicked()">Connecter</button> <br>
+    
+	<br>
+    
+	Destinataire : <input type="text" id="destination" value="user2"/><br>
+	Message : <input type="text" id="message" value="Hello user 2"/><br>
+	<button onclick="sendMessageToUser()" >Envoyer</button> <br>
+    
+	<br>
+	Call dest : <input type="text" id="callDest" value="user2"/><br>
+	<button onclick="call()">Appeler</button>
+	<button onclick="answer()" style="visibility:hidden" id="answer">Answer</button>
+	
+	<table>
+	<tr>
+	<td> Local video
+		<video id="local-video" autoplay style="width:300px;height:300px; background-color:#CCCCCC"></video>
+    </td>
+	<td>
+		Remote video
+		<video id="remote-video" autoplay style="width:300px;height:300px; background-color:#CCCCCC"></video>   
+    </td>
+	</tr>
+	</table>
+        
+    <script src="bower_components/jssip/dist/jssip.min.js"></script>   
+    <script src="jssipExample.js"></script> 
+    </body>
+</html>
