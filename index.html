@@ -6,20 +6,24 @@
     </head>
     <body>
     
-	Username : <input type="text" id="username" value="demo-bob"/><br>
-	Password : <input type="text" id="password" value="othersecretpassword"/><br>
-	<button onclick="onConnectClicked()">Connecter</button> <br>
+	Username : <input type="text" id="username" value="101"/><br>
+	Password : <input type="text" id="password" value="password"/><br>
+	<button id="connectBtn" onclick="onConnectClicked()">Connect</button><button id="disConnectBtn" onclick="onDisconnectClicked()" style="visibility:hidden">Disconnect</button> <br>
+    <br>
     
-	<br>
-    
-	Destinataire : <input type="text" id="destination" value="user2"/><br>
-	Message : <input type="text" id="message" value="Hello user 2"/><br>
+	Destinataire : <input type="text" id="destination" value="102"/><br>
+	Message : <input type="text" id="message" value="Hello user 102"/><br>
 	<button onclick="sendMessageToUser()" >Envoyer</button> <br>
     
+	<div>
+		<h3>Messages</h3>
+		<ul id="messageList"></ul>
+	<div>	
+
 	<br>
-	Call dest : <input type="text" id="callDest" value="user2"/><br>
-	<button onclick="call()">Appeler</button>
-	<button onclick="answer()" style="visibility:hidden" id="answer">Answer</button>
+	Call dest : <input type="text" id="callDest" value="102"/><br>
+	<button id="callBtn" onclick="call()">Appeler</button>
+	<button id="answerBtn" onclick="answer()" style="visibility:hidden" id="answer">Answer</button>
 	
 	<table>
 	<tr>
