@@ -3,9 +3,15 @@ var ua;
 var sipDomainName = '172.17.0.2';
 var audio = new Audio('./audio/ring.mp3');
 audio.loop = true;
+var SESSION = null;
+
+// HTML5 <video> elements in which local and remote video will be shown
+var selfView =   document.getElementById('local-video');
+var remoteView =  document.getElementById('remote-video');
 
 //Enable JSSIP debug
-JsSIP.debug.enable('JsSIP:*');
+//JsSIP.debug.enable('JsSIP:*');
+JsSIP.debug.disable('JsSIP:*');
 
 function login(username, password){
 	var sipUser       = username+'@'+sipDomainName;
@@ -69,7 +75,11 @@ ua.on('newRTCSession', function(e){
                    audio.pause();
 
                     var session_incoming = e.session;
+                    SESSION = e.session;
 
+                    var audioActivated = document.getElementById("audioCB").checked;
+                    var videoActivated = document.getElementById("videoCB").checked;
+                        
                     var options = {
                     'mediaConstraints': {
                         'audio': true,
@@ -77,7 +87,27 @@ ua.on('newRTCSession', function(e){
                     }
                     };
 
+                    console.log(options);
+
                     session_incoming.answer(options);
+                    session_incoming.on('confirmed', function(e){
+                        console.log('>>> CONFIRMED');
+                    });
+                    session_incoming.on('addstream', function(e){
+                        console.log('>>> addstream');
+                        var stream = e.stream;
+                        // Attach remote stream to remoteView
+                        JsSIP.rtcninja.attachMediaStream(remoteView, stream);
+                    });
+
+                    session_incoming.on( 'confirmed',  function(e){
+                        // Attach local stream to selfView
+                        //selfView.src = window.URL.createObjectURL(session.connection.getLocalStreams()[0]);
+		                //Give a call
+                        localStream = session.connection.getLocalStreams()[0];
+		                selfView = JsSIP.rtcninja.attachMediaStream(selfView, localStream);
+		                console.log('call confirmed');
+                    });
                }
 			}
 			});			
@@ -158,9 +188,7 @@ function call(){
     var session = null;
     var dest = 'sip:'+document.getElementById('callDest').value+'@officesip.local';
 
-    // HTML5 <video> elements in which local and remote video will be shown
-    var selfView =   document.getElementById('local-video');
-    var remoteView =  document.getElementById('remote-video');
+
 
     // Register callbacks to desired call events
     var eventHandlers = {
@@ -172,32 +200,36 @@ function call(){
       'confirmed':  function(e){
         // Attach local stream to selfView
         //selfView.src = window.URL.createObjectURL(session.connection.getLocalStreams()[0]);
-		localStream = session.connection.getLocalStreams()[0];
+		//Give a call
+        localStream = session.connection.getLocalStreams()[0];
 		selfView = JsSIP.rtcninja.attachMediaStream(selfView, localStream);
-		console.log('call confirmed')
+		console.log('call confirmed');
       },
 	  'addstream':  function(e) {
 		 
         var stream = e.stream;
-
         // Attach remote stream to remoteView
-        remoteView.src = window.URL.createObjectURL(stream);
+        JsSIP.rtcninja.attachMediaStream(remoteView, stream);
       },
       'ended':      function(e){ 
           console.log('call ended');
           showCall();/* Your code here */ 
          }
     };
+    
+    var audioActivated = document.getElementById("audioCB").checked;
+    var videoActivated = document.getElementById("videoCB").checked;
+                    
 
     var options = {
       'eventHandlers': eventHandlers,
       'extraHeaders': [],
-      'mediaConstraints': {'audio': true, 'video': true},
-	  'pcConfig': {
-					'iceServers': [
-					  { 'urls': 'turn:'+ 'localhost:10001', 'username': 'user1', 'credential': ' 1234' }
-					]
-					}
+      'mediaConstraints': {'audio': audioActivated, 'video': videoActivated}
+      //,'pcConfig': {
+     //					'iceServers': [
+		//			  { 'urls': 'turn:'+ '192.168.99.100:10001', 'username': '101', 'credential': ' password' }
+		//			]
+		//			}
     };
 
     session = ua.call(dest, options);
