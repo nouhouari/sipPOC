@@ -6,8 +6,8 @@ audio.loop = true;
 var SESSION = null;
 
 // HTML5 <video> elements in which local and remote video will be shown
-var selfView =   document.getElementById('local-video');
-var remoteView =  document.getElementById('remote-video');
+var selfView =   document.getElementById('localVideo');
+var remoteView =  document.getElementById('remoteVideo');
 
 //Enable JSSIP debug
 //JsSIP.debug.enable('JsSIP:*');
@@ -90,24 +90,26 @@ ua.on('newRTCSession', function(e){
                     console.log(options);
 
                     session_incoming.answer(options);
+                    /*
+                    SESSION = session_incoming;
                     session_incoming.on('confirmed', function(e){
                         console.log('>>> CONFIRMED');
+                        localStream = SESSION.connection.getLocalStreams()[0];
+		                remoteView = JsSIP.rtcninja.attachMediaStream(remoteView, localStream);
                     });
                     session_incoming.on('addstream', function(e){
                         console.log('>>> addstream');
                         var stream = e.stream;
                         // Attach remote stream to remoteView
+                        //JsSIP.rtcninja.attachMediaStream(remoteView, stream);
                         JsSIP.rtcninja.attachMediaStream(remoteView, stream);
                     });
 
                     session_incoming.on( 'confirmed',  function(e){
-                        // Attach local stream to selfView
-                        //selfView.src = window.URL.createObjectURL(session.connection.getLocalStreams()[0]);
-		                //Give a call
-                        localStream = session.connection.getLocalStreams()[0];
+                        localStream = SESSION.connection.getLocalStreams()[0];
 		                selfView = JsSIP.rtcninja.attachMediaStream(selfView, localStream);
-		                console.log('call confirmed');
-                    });
+		                console.log('>>> Receiving call confirmed');
+                    }); */
                }
 			}
 			});			
@@ -160,10 +162,7 @@ function appendMessage(list, message) {
 
 function send(destination, message){
     // Sending a message
-    //var text = document.getElementById('message').value;
-    //var dest = 'sip:us1@officesip.local';
-	
-	console.log('Sending ' + message + ' to '+ destination);
+    console.log('Sending ' + message + ' to '+ destination);
 
     // Register callbacks to desired message events : Fonctions qui seront appellees lors de l envoi de messages
     var eventHandlers = {
@@ -188,8 +187,6 @@ function call(){
     var session = null;
     var dest = 'sip:'+document.getElementById('callDest').value+'@officesip.local';
 
-
-
     // Register callbacks to desired call events
     var eventHandlers = {
       'progress':   function(e){ console.log('call progress')/* Your code here */ },
@@ -198,18 +195,14 @@ function call(){
         showCall();
 	  },
       'confirmed':  function(e){
+          console.log("Call confirmed.");
         // Attach local stream to selfView
-        //selfView.src = window.URL.createObjectURL(session.connection.getLocalStreams()[0]);
-		//Give a call
-        localStream = session.connection.getLocalStreams()[0];
-		selfView = JsSIP.rtcninja.attachMediaStream(selfView, localStream);
-		console.log('call confirmed');
+        selfView.src = window.URL.createObjectURL(session.connection.getLocalStreams()[0]);  
       },
 	  'addstream':  function(e) {
-		 
-        var stream = e.stream;
-        // Attach remote stream to remoteView
-        JsSIP.rtcninja.attachMediaStream(remoteView, stream);
+	    // Attach remote stream to remoteView
+      	var stream = e.stream;
+        remoteView.src = window.URL.createObjectURL(stream); 
       },
       'ended':      function(e){ 
           console.log('call ended');
@@ -225,12 +218,10 @@ function call(){
       'eventHandlers': eventHandlers,
       'extraHeaders': [],
       'mediaConstraints': {'audio': audioActivated, 'video': videoActivated}
-      //,'pcConfig': {
-     //					'iceServers': [
-		//			  { 'urls': 'turn:'+ '192.168.99.100:10001', 'username': '101', 'credential': ' password' }
-		//			]
-		//			}
-    };
+      ,'pcConfig': {
+     			"iceServers": [ {"urls": ["stun:stun.l.google.com:19302"]} ], 
+                 "gatheringTimeout": 2000 }
+	};
 
     session = ua.call(dest, options);
 }
