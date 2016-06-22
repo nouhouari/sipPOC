@@ -1,4 +1,4 @@
-var sipServerHost = '192.168.99.100:8088/ws';
+var sipServerHost = '192.168.99.100:8088/ws'; //localhost:5060';
 var ua;
 var sipDomainName = '172.17.0.2';
 var audio = new Audio('./audio/ring.mp3');
@@ -6,14 +6,16 @@ audio.loop = true;
 var SESSION = null;
 
 // HTML5 <video> elements in which local and remote video will be shown
-var selfView =   document.getElementById('localVideo');
-var remoteView =  document.getElementById('remoteVideo');
+var selfView ;
+var remoteView ;
 
 //Enable JSSIP debug
 //JsSIP.debug.enable('JsSIP:*');
 JsSIP.debug.disable('JsSIP:*');
 
 function login(username, password){
+	selfView =   document.getElementById('local-video');
+	remoteView =  document.getElementById('remote-video');
 	var sipUser       = username+'@'+sipDomainName;
 	var sipPwd        = password;  
 
@@ -90,26 +92,26 @@ ua.on('newRTCSession', function(e){
                     console.log(options);
 
                     session_incoming.answer(options);
-                    /*
-                    SESSION = session_incoming;
                     session_incoming.on('confirmed', function(e){
-                        console.log('>>> CONFIRMED');
-                        localStream = SESSION.connection.getLocalStreams()[0];
-		                remoteView = JsSIP.rtcninja.attachMediaStream(remoteView, localStream);
+                        console.log('<<< call confirmed');
                     });
                     session_incoming.on('addstream', function(e){
-                        console.log('>>> addstream');
-                        var stream = e.stream;
-                        // Attach remote stream to remoteView
-                        //JsSIP.rtcninja.attachMediaStream(remoteView, stream);
-                        JsSIP.rtcninja.attachMediaStream(remoteView, stream);
+                        console.log('<<< addstream');
+                         var stream = e.stream;
+                         // Attach remote stream to remoteView
+                         remoteView = JsSIP.rtcninja.attachMediaStream(remoteView, stream);
+						 //var estream = e.stream;
+                         //JsSIP.rtcninja.attachMediaStream(selfView, estream);
                     });
 
                     session_incoming.on( 'confirmed',  function(e){
-                        localStream = SESSION.connection.getLocalStreams()[0];
+                        // Attach local stream to selfView
+                        //selfView.src = window.URL.createObjectURL(session.connection.getLocalStreams()[0]);
+		                //Give a call
+                        var localStream = SESSION.connection.getLocalStreams()[0];
 		                selfView = JsSIP.rtcninja.attachMediaStream(selfView, localStream);
-		                console.log('>>> Receiving call confirmed');
-                    }); */
+		                console.log('<<< call confirmed');
+                    });
                }
 			}
 			});			
@@ -162,7 +164,10 @@ function appendMessage(list, message) {
 
 function send(destination, message){
     // Sending a message
-    console.log('Sending ' + message + ' to '+ destination);
+    //var text = document.getElementById('message').value;
+    //var dest = 'sip:us1@officesip.local';
+	
+	console.log('Sending ' + message + ' to '+ destination);
 
     // Register callbacks to desired message events : Fonctions qui seront appellees lors de l envoi de messages
     var eventHandlers = {
@@ -185,27 +190,31 @@ function send(destination, message){
 function call(){
 
     var session = null;
-    var dest = 'sip:'+document.getElementById('callDest').value+'@officesip.local';
+    var dest = 'sip:'+document.getElementById('callDest').value+'@' +sipDomainName;
+
+
 
     // Register callbacks to desired call events
     var eventHandlers = {
       'progress':   function(e){ console.log('call progress')/* Your code here */ },
       'failed':     function(e){ 
-		console.log('call failed');/* Your code here */
+		console.log('>>> call failed');/* Your code here */
         showCall();
 	  },
       'confirmed':  function(e){
-          console.log("Call confirmed.");
         // Attach local stream to selfView
-        selfView.src = window.URL.createObjectURL(session.connection.getLocalStreams()[0]);  
+        //selfView.src = window.URL.createObjectURL(session.connection.getLocalStreams()[0]);
+		//Give a call
+        selfView = JsSIP.rtcninja.attachMediaStream(selfView, session.connection.getLocalStreams()[0]);
+		console.log('>>> call confirmed');
       },
 	  'addstream':  function(e) {
-	    // Attach remote stream to remoteView
-      	var stream = e.stream;
-        remoteView.src = window.URL.createObjectURL(stream); 
+		console.log('>>> addstream');
+        // Attach remote stream to remoteView
+        remoteView = JsSIP.rtcninja.attachMediaStream(remoteView, e.stream);
       },
       'ended':      function(e){ 
-          console.log('call ended');
+          console.log('>>> call ended');
           showCall();/* Your code here */ 
          }
     };
@@ -217,11 +226,22 @@ function call(){
     var options = {
       'eventHandlers': eventHandlers,
       'extraHeaders': [],
-      'mediaConstraints': {'audio': audioActivated, 'video': videoActivated}
-      ,'pcConfig': {
-     			"iceServers": [ {"urls": ["stun:stun.l.google.com:19302"]} ], 
-                 "gatheringTimeout": 2000 }
-	};
+      'mediaConstraints': {'audio': true, 'video': true}
+      //,'pcConfig': {
+     //	'iceServers': [
+	 //	{'urls':[
+      //      'stun:stun.l.google.com:19302'], 
+      //  'gatheringTimeout': '20000'} 
+		//			]
+	  //}
+            //,
+            //'stun:stun.l.google.com:19302',
+            //'stun:stun1.l.google.com:19302',
+            //'stun:stun2.l.google.com:19302',
+            //'stun:stun3.l.google.com:19302',
+            //'stun:stun4.l.google.com:19302',
+            //'stun:stun.192.168.99.100:3478'
+    };
 
     session = ua.call(dest, options);
 }
